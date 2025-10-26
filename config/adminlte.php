@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'title' => 'AdminLTE 3',
+    'title' => 'SGTIM',
     'title_prefix' => '',
     'title_postfix' => '',
 
@@ -63,7 +63,7 @@ return [
     |
     */
 
-    'logo' => '<b>Admin</b>LTE',
+    'logo' => 'SGTIM',
     'logo_img' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
     'logo_img_class' => 'brand-image img-circle elevation-3',
     'logo_img_xl' => null,
@@ -110,7 +110,7 @@ return [
     */
 
     'preloader' => [
-        'enabled' => true,
+        'enabled' => false,
         'mode' => 'fullscreen',
         'img' => [
             'path' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
@@ -311,87 +311,171 @@ return [
         ],
 
         // Sidebar items:
+        // [
+        //     'type' => 'sidebar-menu-search',
+        //     'text' => 'search',
+        // ],
+        // [
+        //     'text' => 'blog',
+        //     'url' => 'admin/blog',
+        //     'can' => 'manage-blog',
+        // ],
+        // [
+        //     'text' => 'pages',
+        //     'url' => 'admin/pages',
+        //     'icon' => 'far fa-fw fa-file',
+        //     'label' => 4,
+        //     'label_color' => 'success',
+        // ],
+        // ['header' => 'account_settings'],
         [
-            'type' => 'sidebar-menu-search',
-            'text' => 'search',
-        ],
-        [
-            'text' => 'blog',
-            'url' => 'admin/blog',
-            'can' => 'manage-blog',
-        ],
-        [
-            'text' => 'pages',
-            'url' => 'admin/pages',
-            'icon' => 'far fa-fw fa-file',
-            'label' => 4,
-            'label_color' => 'success',
-        ],
-        ['header' => 'account_settings'],
-        [
-            'text' => 'profile',
+            'text' => 'Dashboard',
             'url' => 'admin/settings',
-            'icon' => 'fas fa-fw fa-user',
+            'icon' => 'fas fa-tachometer-alt fa-fw',
         ],
+        ['header' => 'Gestion de Solicitudes'],
         [
-            'text' => 'change_password',
+            'text' => 'Solicitudes',
             'url' => 'admin/settings',
-            'icon' => 'fas fa-fw fa-lock',
+            'icon' => 'fas fa-laptop',
+        ],
+        ['header' => 'Gestion de oficinas'],
+        [
+            'text' => 'Oficinas',
+            'url' => 'admin/settings',
+            'icon' => 'far fa-building',
+            'submenu' => [
+                [
+                    'text' => 'Departamentos',
+                    'url' => '#',
+                ],
+                [
+                    'text' => 'Oficinas',
+                    'url' => '#',
+                ],
+                [
+                    'text' => 'Empleados',
+                    'url' => '#',
+                ],
+            ]
+        ],
+        ['header' => 'Gestion de Equipos'],
+        [
+            'text' => 'Equipos',
+            'url' => 'admin/settings',
+            'icon' => 'fas fa-laptop',
         ],
         [
-            'text' => 'multilevel',
-            'icon' => 'fas fa-fw fa-share',
+            'text' => 'Accesorios',
+            'url' => 'admin/settings',
+            'icon' => 'far fa-keyboard fa-fw',
+        ],
+        [
+            'text' => 'Componentes',
+            'url' => 'admin/settings',
+            'icon' => 'far fa-hdd fa-fw',
+        ],
+        ['header' => 'Gestion de Actividades'],
+        [
+            'text' => 'Actividades',
+            'url' => 'admin/settings',
+            'icon' => 'fas fa-laptop',
+        ],
+        [
+            'text' => 'Programas',
+            'url' => 'admin/settings',
+            'icon' => 'far fa-keyboard fa-fw',
+        ],
+        ['header' => 'Gestion de Mantenimiento'],
+        [
+            'text' => 'Mantenimiento',
+            'icon' => 'fas fa-tools',
+            'submenu' => [
+                [
+                    'text' => 'Diagnostico',
+                    'url' => '#',
+                ],
+                 [
+                    'text' => 'Reparacion',
+                    'url' => '#',
+                ],
+            ]
+        ],
+        [
+            'text' => 'Configuracion',
+            'icon' => 'fas fa-cog fa-fw',
             'submenu' => [
                 [
                     'text' => 'level_one',
                     'url' => '#',
                 ],
-                [
-                    'text' => 'level_one',
-                    'url' => '#',
-                    'submenu' => [
-                        [
-                            'text' => 'level_two',
-                            'url' => '#',
-                        ],
-                        [
-                            'text' => 'level_two',
-                            'url' => '#',
-                            'submenu' => [
-                                [
-                                    'text' => 'level_three',
-                                    'url' => '#',
-                                ],
-                                [
-                                    'text' => 'level_three',
-                                    'url' => '#',
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-                [
+                 [
                     'text' => 'level_one',
                     'url' => '#',
                 ],
-            ],
+            ]
         ],
-        ['header' => 'labels'],
-        [
-            'text' => 'important',
-            'icon_color' => 'red',
-            'url' => '#',
-        ],
-        [
-            'text' => 'warning',
-            'icon_color' => 'yellow',
-            'url' => '#',
-        ],
-        [
-            'text' => 'information',
-            'icon_color' => 'cyan',
-            'url' => '#',
-        ],
+        // [
+        //     'text' => 'change_password',
+        //     'url' => 'admin/settings',
+        //     'icon' => 'fas fa-fw fa-lock',
+        // ],
+
+        // Multinivel
+        // [
+        //     'text' => 'multilevel',
+        //     'icon' => 'fas fa-fw fa-share',
+        //     'submenu' => [
+        //         [
+        //             'text' => 'level_one',
+        //             'url' => '#',
+        //         ],
+        //         [
+        //             'text' => 'level_one',
+        //             'url' => '#',
+        //             'submenu' => [
+        //                 [
+        //                     'text' => 'level_two',
+        //                     'url' => '#',
+        //                 ],
+        //                 [
+        //                     'text' => 'level_two',
+        //                     'url' => '#',
+        //                     'submenu' => [
+        //                         [
+        //                             'text' => 'level_three',
+        //                             'url' => '#',
+        //                         ],
+        //                         [
+        //                             'text' => 'level_three',
+        //                             'url' => '#',
+        //                         ],
+        //                     ],
+        //                 ],
+        //             ],
+        //         ],
+        //         [
+        //             'text' => 'level_one',
+        //             'url' => '#',
+        //         ],
+        //     ],
+        // ],
+        // ['header' => 'labels'],
+        // [
+        //     'text' => 'important',
+        //     'icon_color' => 'red',
+        //     'url' => '#',
+        // ],
+        // [
+        //     'text' => 'warning',
+        //     'icon_color' => 'yellow',
+        //     'url' => '#',
+        // ],
+        // [
+        //     'text' => 'information',
+        //     'icon_color' => 'cyan',
+        //     'url' => '#',
+        // ],
     ],
 
     /*
