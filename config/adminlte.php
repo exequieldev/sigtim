@@ -299,35 +299,21 @@ return [
     */
 
     'menu' => [
-        // Navbar items:
+        // [
+        // 'type' => 'navbar-search',
+        // 'text' => 'search',
+        // 'topnav_right' => true,
+        // ],
+        // [
+        //     'type' => 'fullscreen-widget',
+        //     'topnav_right' => true,
+        // ],
         [
-            'type' => 'navbar-search',
-            'text' => 'search',
+            'type' => 'navbar-messages',
+            'icon' => 'fas fa-envelope',
+            'url' => '#',
             'topnav_right' => true,
         ],
-        [
-            'type' => 'fullscreen-widget',
-            'topnav_right' => true,
-        ],
-
-        // Sidebar items:
-        // [
-        //     'type' => 'sidebar-menu-search',
-        //     'text' => 'search',
-        // ],
-        // [
-        //     'text' => 'blog',
-        //     'url' => 'admin/blog',
-        //     'can' => 'manage-blog',
-        // ],
-        // [
-        //     'text' => 'pages',
-        //     'url' => 'admin/pages',
-        //     'icon' => 'far fa-fw fa-file',
-        //     'label' => 4,
-        //     'label_color' => 'success',
-        // ],
-        // ['header' => 'account_settings'],
         [
             'text' => 'Dashboard',
             'url' => 'admin/settings',
@@ -336,33 +322,46 @@ return [
         ['header' => 'Gestion de Solicitudes'],
         [
             'text' => 'Solicitudes',
-            'url' => 'admin/settings',
+            'url' => 'solicitudes',
             'icon' => 'fas fa-laptop',
         ],
         ['header' => 'Gestion de oficinas'],
         [
             'text' => 'Oficinas',
-            'url' => 'admin/settings',
+            'url' => '#',
             'icon' => 'far fa-building',
             'submenu' => [
                 [
                     'text' => 'Departamentos',
-                    'url' => '#',
+                    'url' => 'departamentos',
                 ],
                 [
                     'text' => 'Oficinas',
-                    'url' => '#',
+                    'url' => 'oficinas',
                 ],
                 [
                     'text' => 'Empleados',
-                    'url' => '#',
+                    'url' => 'empleados',
                 ],
             ]
         ],
+
+        ['header' => 'Gestion de Actividades'],
+        [
+            'text' => 'Actividades',
+            'url' => 'actividades',
+            'icon' => 'fas fa-laptop',
+        ],
+        [
+            'text' => 'Programas',
+            'url' => 'programas',
+            'icon' => 'far fa-keyboard fa-fw',
+        ],
+
         ['header' => 'Gestion de Equipos'],
         [
             'text' => 'Equipos',
-            'url' => 'admin/settings',
+            'url' => 'equipos',
             'icon' => 'fas fa-laptop',
         ],
         [
@@ -372,20 +371,16 @@ return [
         ],
         [
             'text' => 'Componentes',
-            'url' => 'admin/settings',
+            'url' => 'componentes',
             'icon' => 'far fa-hdd fa-fw',
         ],
-        ['header' => 'Gestion de Actividades'],
+        ['header' => 'Gestion de Proveedores'],
         [
-            'text' => 'Actividades',
-            'url' => 'admin/settings',
+            'text' => 'Proveedores',
+            'url' => 'proveedores',
             'icon' => 'fas fa-laptop',
         ],
-        [
-            'text' => 'Programas',
-            'url' => 'admin/settings',
-            'icon' => 'far fa-keyboard fa-fw',
-        ],
+
         ['header' => 'Gestion de Mantenimiento'],
         [
             'text' => 'Mantenimiento',
@@ -514,22 +509,22 @@ return [
 
     'plugins' => [
         'Datatables' => [
-            'active' => false,
+            'active' => true,
             'files' => [
                 [
                     'type' => 'js',
                     'asset' => false,
-                    'location' => '//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js',
+                    'location' => '//cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js',
                 ],
                 [
                     'type' => 'js',
                     'asset' => false,
-                    'location' => '//cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js',
+                    'location' => '//cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js',
                 ],
                 [
                     'type' => 'css',
                     'asset' => false,
-                    'location' => '//cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css',
+                    'location' => '//cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css',
                 ],
             ],
         ],
