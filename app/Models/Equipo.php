@@ -48,11 +48,12 @@ class Equipo extends Model
                     ->withTimestamps();
     }
 
-    // ELIMINA esta relación si la tienes:
-    // public function componentes()
-    // {
-    //     return $this->hasMany(Componente::class); // ← Esto causa el error
-    // }
+    public function solicitudes()
+    {
+        return $this->belongsToMany(Solicitud::class, 'solicitud_equipo')
+                    ->withPivot('descripcion_uso', 'cantidad')
+                    ->withTimestamps();
+    }
 
     // Scope para búsquedas
     public function scopeBuscar($query, $search)

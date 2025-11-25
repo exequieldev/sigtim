@@ -1,4 +1,4 @@
-@extends('adminlte::page')
+@extends('layouts.app')
 
 @section('title', 'Lista de Equipos')
 
@@ -6,38 +6,39 @@
 <div class="row mt-2">
     <div class="col-12">
         <div class="card">
-            <div class="card-header d-flex align-items-center">
-                <h5 class="card-title mr-4">Inventario de Equipos Informáticos</h5>
-                <a href="{{ route('equipos.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Nuevo Equipo
+            <div class="card-header bg-primary text-white d-flex align-items-center justify-content-between">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-desktop me-2"></i>Inventario de Equipos Informáticos
+                </h5>
+                <a href="{{ route('equipos.create') }}" class="btn btn-light btn-sm">
+                    <i class="fas fa-plus me-1"></i> Nuevo Equipo
                 </a>
             </div>
         </div>
         
-        <div class="card">
-            
-            <div class="card-body">
+        <div class="card mt-3">
+            <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-striped " id="equipos-table">
-                        <thead class="table-dark">
+                    <table class="table table-hover mb-0" id="equipos-table">
+                        <thead class="table-success">
                             <tr>
-                                <th>N° Serie</th>
+                                <th class="ps-4">N° Serie</th>
                                 <th>Tipo</th>
                                 <th>Fabricante</th>
                                 <th>Modelo</th>
                                 <th>Fecha Adquisición</th>
                                 <th>Fecha Instalación</th>
                                 <th>Estado</th>
-                                <th>Acciones</th>
+                                <th class="text-center pe-4">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($equipos as $equipo)
                                 <tr>
-                                    <td>{{ $equipo->numero_serie }}</td>
+                                    <td class="ps-4 fw-bold">{{ $equipo->numero_serie }}</td>
                                     <td>{{ $equipo->tipoEquipo->nombre ?? 'N/A' }}</td>
                                     <td>
-                                        <strong>{{ $equipo->fabricante->nombre ?? 'N/A' }}</strong><br>
+                                        <strong>{{ $equipo->fabricante->nombre ?? 'N/A' }}</strong>
                                     </td>
                                     <td>{{ $equipo->modelo }}</td>
                                     <td>{{ $equipo->fecha_adquisicion->format('d/m/Y') }}</td>
@@ -52,7 +53,7 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <div class="btn-group btn-group-sm">
+                                        <div class="btn-group btn-group-sm justify-content-center">
                                             <a href="{{ route('equipos.show', $equipo) }}" 
                                                class="btn btn-info" title="Ver">
                                                 <i class="fas fa-eye"></i>
@@ -76,21 +77,50 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="text-center">No se encontraron equipos</td>
+                                    <td colspan="8" class="text-center py-4">
+                                        <i class="fas fa-desktop fa-2x text-muted mb-2"></i>
+                                        <p class="text-muted mb-0">No se encontraron equipos</p>
+                                    </td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
-
-                
             </div>
         </div>
     </div>
 </div>
 @endsection
 
+@section('css')
+<style>
+    .card {
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: rgba(0,0,0,0.02);
+    }
+    
+    .btn-group .btn {
+        border-radius: 6px;
+        margin: 0 2px;
+    }
+</style>
+@endsection
+
 @section('js')
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+<!-- DataTables JS -->
+<script type="text/javascript" src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+
 <script>
     $(document).ready(function() {
         $('#equipos-table').DataTable({
@@ -98,7 +128,11 @@
                 "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json"
             },
             "pageLength": 5,
-            "lengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Todos"]]
+            "lengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Todos"]],
+            "responsive": true,
+            "ordering": true,
+            "searching": true,
+            "info": true
         });
     });
 </script>

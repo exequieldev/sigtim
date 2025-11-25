@@ -132,18 +132,18 @@
                                                 </div>
                                                 <div class="col-md-2">
                                                     <div class="mb-3">
-                                                        <label class="form-label">Unidad de Medida *</label>
-                                                        <select class="form-select @error('requisitos.0.unidad_medida') is-invalid @enderror" 
-                                                                name="requisitos[0][unidad_medida]" required>
+                                                        <label class="form-label">Unidad*</label>
+                                                        <select class="form-select @error('requisitos.0.unidad_medida_id') is-invalid @enderror" 
+                                                                name="requisitos[0][unidad_medida_id]" required>
                                                             <option value="">Seleccionar unidad</option>
-                                                            @foreach($unidadesMedida as $unidad)
-                                                                <option value="{{ $unidad }}" 
-                                                                    {{ old('requisitos.0.unidad_medida') == $unidad ? 'selected' : '' }}>
-                                                                    {{ $unidad }}
+                                                            @foreach($unidades as $unidad)
+                                                                <option value="{{ $unidad->id }}" 
+                                                                    {{ old('requisitos.0.unidad_medida_id') == $unidad->id ? 'selected' : '' }}>
+                                                                    {{ $unidad->simbolo }} - {{ $unidad->nombre }}
                                                                 </option>
                                                             @endforeach
                                                         </select>
-                                                        @error('requisitos.0.unidad_medida')
+                                                        @error('requisitos.0.unidad_medida_id')
                                                             <div class="invalid-feedback">{{ $message }}</div>
                                                         @enderror
                                                     </div>
@@ -236,23 +236,23 @@ function agregarRequisito() {
                     </select>
                 </div>
             </div>
+            <div class="col-md-2">
+                <div class="mb-3">
+                    <label class="form-label">Unidad de Medida *</label>
+                    <select class="form-select" name="requisitos[${contadorRequisitos}][unidad_medida_id]" required>
+                        <option value="">Seleccionar unidad</option>
+                        @foreach($unidades as $unidad)
+                            <option value="{{ $unidad->id }}">{{ $unidad->simbolo }} - {{ $unidad->nombre }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
             <div class="col-md-3">
                 <div class="mb-3">
                     <label class="form-label">Requisito Mínimo *</label>
                     <input type="text" class="form-control" 
                            name="requisitos[${contadorRequisitos}][requisito_minimo]" 
                            placeholder="Ej: 4, 2.5, 8, etc." required>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div class="mb-3">
-                    <label class="form-label">Unidad de Medida *</label>
-                    <select class="form-select" name="requisitos[${contadorRequisitos}][unidad_medida]" required>
-                        <option value="">Seleccionar unidad</option>
-                        @foreach($unidadesMedida as $unidad)
-                            <option value="{{ $unidad }}">{{ $unidad }}</option>
-                        @endforeach
-                    </select>
                 </div>
             </div>
             <div class="col-md-3">

@@ -1,4 +1,4 @@
-@extends('adminlte::page')
+@extends('layouts.app')
 
 @section('title', 'Detalles del Empleado')
 
@@ -47,7 +47,7 @@
                         <table class="table table-sm">
                             <tr>
                                 <th width="40%">Cargo:</th>
-                                <td>{{ $empleado->cargo }}</td>
+                                <td>{{ $empleado->cargo->nombre}}</td>
                             </tr>
                             <tr>
                                 <th>Oficina:</th>

@@ -76,14 +76,17 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="cargo" class="form-label">Cargo *</label>
-                                <input type="text" class="form-control @error('cargo') is-invalid @enderror" 
-                                       id="cargo" name="cargo" 
-                                       value="{{ old('cargo') }}" 
-                                       placeholder="Ingrese el cargo del empleado" 
-                                       required
-                                       maxlength="255">
-                                @error('cargo')
+                                <label for="cargo_id" class="form-label">Cargo *</label>
+                                <select class="form-select @error('cargo_id') is-invalid @enderror" 
+                                        id="cargo_id" name="cargo_id" required>
+                                    <option value="">Seleccionar cargo</option>
+                                    @foreach($cargos as $cargo)
+                                        <option value="{{ $cargo->id }}" {{ old('cargo_id') == $cargo->id ? 'selected' : '' }}>
+                                            {{ $cargo->nombre }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('cargo_id')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>

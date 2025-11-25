@@ -6,6 +6,7 @@ use App\Models\Programa;
 use App\Models\Fabricante;
 use App\Models\TipoComponente;
 use App\Models\ProgramaRequisito;
+use App\Models\Unidad; // Agregado
 use App\Http\Requests\ProgramaRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -34,9 +35,9 @@ class ProgramaController extends Controller
     {
         $fabricantes = Fabricante::orderBy('nombre')->get();
         $tiposComponente = TipoComponente::orderBy('nombre')->get();
-        $unidadesMedida = ProgramaRequisito::getUnidadesMedida(); // Nuevo: obtener unidades
+        $unidades = Unidad::orderBy('nombre')->get(); // Cambiado: obtener de tabla unidades
         
-        return view('programas.create', compact('fabricantes', 'tiposComponente', 'unidadesMedida'));
+        return view('programas.create', compact('fabricantes', 'tiposComponente', 'unidades'));
     }
 
     /**
@@ -44,7 +45,7 @@ class ProgramaController extends Controller
      */
     public function store(ProgramaRequest $request)
     {
-        // try {
+        try {
             DB::transaction(function () use ($request) {
                 // Crear el programa
                 $programa = Programa::create($request->validated());
@@ -59,7 +60,7 @@ class ProgramaController extends Controller
                                 'tipo_componente_id' => $requisito['tipo_componente_id'],
                                 'requisito_minimo' => $requisito['requisito_minimo'],
                                 'requisito_recomendado' => $requisito['requisito_recomendado'] ?? null,
-                                'unidad_medida' => $requisito['unidad_medida'] ?? ProgramaRequisito::UNIDAD_UNIDAD, // Nuevo campo
+                                'unidad_medida_id' => $requisito['unidad_medida_id'] ?? null, // Cambiado a unidad_medida_id
                             ]);
                         }
                     }
@@ -68,11 +69,11 @@ class ProgramaController extends Controller
             
             return redirect()->route('programas.index')
                 ->with('success', 'Programa creado exitosamente.');
-        // } catch (\Exception $e) {
-        //     return redirect()->back()
-        //         ->with('error', 'Error al crear el programa: ' . $e->getMessage())
-        //         ->withInput();
-        // }
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error al crear el programa: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     /**
@@ -82,10 +83,10 @@ class ProgramaController extends Controller
     {
         $fabricantes = Fabricante::orderBy('nombre')->get();
         $tiposComponente = TipoComponente::orderBy('nombre')->get();
-        $unidadesMedida = ProgramaRequisito::getUnidadesMedida(); // Nuevo: obtener unidades
+        $unidades = Unidad::orderBy('nombre')->get(); // Cambiado: obtener de tabla unidades
         $programa->load('requisitos');
         
-        return view('programas.edit', compact('programa', 'fabricantes', 'tiposComponente', 'unidadesMedida'));
+        return view('programas.edit', compact('programa', 'fabricantes', 'tiposComponente', 'unidades'));
     }
 
     /**
@@ -111,7 +112,7 @@ class ProgramaController extends Controller
                                 'tipo_componente_id' => $requisito['tipo_componente_id'],
                                 'requisito_minimo' => $requisito['requisito_minimo'],
                                 'requisito_recomendado' => $requisito['requisito_recomendado'] ?? null,
-                                'unidad_medida' => $requisito['unidad_medida'] ?? ProgramaRequisito::UNIDAD_UNIDAD, // Nuevo campo
+                                'unidad_medida_id' => $requisito['unidad_medida_id'] ?? null, // Cambiado a unidad_medida_id
                             ]);
                         }
                     }
@@ -132,7 +133,7 @@ class ProgramaController extends Controller
      */
     public function show(Programa $programa)
     {
-        $programa->load(['fabricante', 'requisitos.tipoComponente']);
+        $programa->load(['fabricante', 'requisitos.tipoComponente', 'requisitos.unidad']); // Agregado unidad
         return view('programas.show', compact('programa'));
     }
 

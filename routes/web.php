@@ -9,11 +9,16 @@ use App\Http\Controllers\OficinaController;
 use App\Http\Controllers\EmpleadoController;
 use App\Http\Controllers\SolicitudController;
 use App\Http\Controllers\ComponenteController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect()->route('equipos.index');
 });
+
+
+
+Route::resource('dashboard', DashboardController::class);
 
 Route::resource('equipos', EquipoController::class);
 
@@ -29,12 +34,13 @@ Route::resource('oficinas', OficinaController::class);
 
 Route::resource('empleados', EmpleadoController::class);
 
+
 Route::resource('componentes', ComponenteController::class);
 
 Route::resource('solicitudes', SolicitudController::class);
 
-Route::get('/reportes/equipos', [EquipoController::class, 'reportes'])
-    ->name('equipos.reportes');
+Route::get('/empleados/{empleadoId}/equipos-activos', [SolicitudController::class, 'getEquiposActivos']) ->name('equipos-activos');
 
-Route::get('/estadisticas/equipos', [EquipoController::class, 'estadisticas'])
-    ->name('equipos.estadisticas');
+Route::resource('diagnosticos', App\Http\Controllers\DiagnosticoController::class);
+Route::post('diagnosticos/calcular', [App\Http\Controllers\DiagnosticoController::class, 'calcularDiagnostico'])->name('diagnosticos.calcular');
+Route::get('/diagnosticos/equipo-solicitud/{solicitud}', [DiagnosticoController::class, 'getEquipoSolicitud'])->name('diagnosticos.equipo-solicitud');

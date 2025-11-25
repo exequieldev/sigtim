@@ -16,7 +16,7 @@ class Empleado extends Model
         'apellido',
         'email',
         'telefono',
-        'cargo',
+        'cargo_id', // Cambiado de 'cargo' a 'cargo_id'
         'oficina_id'
     ];
 
@@ -28,6 +28,11 @@ class Empleado extends Model
     public function oficina()
     {
         return $this->belongsTo(Oficina::class);
+    }
+
+    public function cargo()
+    {
+        return $this->belongsTo(Cargo::class);
     }
 
     public function equipos()

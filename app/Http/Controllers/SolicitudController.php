@@ -10,9 +10,11 @@ use App\Models\Equipo;
 use App\Models\EmpleadoEquipo;
 use App\Models\Programa;
 use App\Models\Componente;
+use App\Models\SolicitudEquipo;
+use App\Models\SolicitudActividad;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema; // Add this import
+use Illuminate\Support\Facades\Schema;
 
 class SolicitudController extends Controller
 {
@@ -20,17 +22,22 @@ class SolicitudController extends Controller
     {
         $search = $request->input('search');
 
-        $solicitudes = Solicitud::with(['empleado', 'actividades', 'tipoSolicitud'])
-            ->when($search, function($query, $search) {
-                return $query->whereHas('empleado', function($q) use ($search) {
-                    $q->where('nombre', 'like', "%{$search}%")
-                      ->orWhere('apellido', 'like', "%{$search}%");
-                })->orWhereHas('tipoSolicitud', function($q) use ($search) {
-                    $q->where('nombre', 'like', "%{$search}%");
-                });
-            })
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+        $solicitudes = Solicitud::with([
+            'empleado', 
+            'solicitudActividades', 
+            'tipoSolicitud', 
+            'solicitudEquipos.equipo'
+        ])
+        ->when($search, function($query, $search) {
+            return $query->whereHas('empleado', function($q) use ($search) {
+                $q->where('nombre', 'like', "%{$search}%")
+                ->orWhere('apellido', 'like', "%{$search}%");
+            })->orWhereHas('tipoSolicitud', function($q) use ($search) {
+                $q->where('nombre', 'like', "%{$search}%");
+            });
+        })
+        ->orderBy('created_at', 'desc')
+        ->paginate(10);
 
         return view('solicitudes.index', compact('solicitudes', 'search'));
     }
@@ -45,8 +52,17 @@ class SolicitudController extends Controller
 
     public function store(Request $request)
     {
-        try {
+        // try {
             DB::transaction(function () use ($request) {
+                // Validar equipo SOLO para reparación
+                $tipoSolicitud = TipoSolicitud::find($request->tipo_solicitud_id);
+                $esReparacion = $tipoSolicitud && stripos($tipoSolicitud->nombre, 'reparación') !== false;
+                
+                // Solo validar equipo para reparación
+                if ($esReparacion && !$request->equipo_id) {
+                    throw new \Exception('Para solicitudes de reparación debe seleccionar un equipo.');
+                }
+
                 // Crear la solicitud con fecha actual y estado pendiente
                 $solicitud = Solicitud::create([
                     'fecha_inicio' => now()->format('Y-m-d'),
@@ -54,18 +70,33 @@ class SolicitudController extends Controller
                     'empleado_id' => $request->empleado_id,
                     'tipo_solicitud_id' => $request->tipo_solicitud_id
                 ]);
-                
-                // Sincronizar actividades si existen
+
+                // Si es una solicitud de reparación, crear registro en SolicitudEquipo
+                if ($esReparacion && $request->equipo_id) {
+                    SolicitudEquipo::create([
+                        'solicitud_id' => $solicitud->id,
+                        'equipo_id' => $request->equipo_id,
+                        'descripcion_uso' => $request->descripcion_uso ?? 'Reparación solicitada',
+                        'fecha_asignacion' => now(),
+                        'estado_asignacion' => 'pendiente',
+                        'observaciones' => $request->observaciones ?? 'Solicitud de reparación creada automáticamente'
+                    ]);
+                }
+
+                // Sincronizar actividades si existen (para ambos tipos de solicitud)
                 if ($request->has('actividades')) {
-                    $actividadIds = array_map(function($actividad) {
-                        return $actividad['actividad_id'];
-                    }, $request->actividades);
-                    
-                    $solicitud->actividades()->sync($actividadIds);
+                    foreach ($request->actividades as $actividadData) {
+                        SolicitudActividad::create([
+                            'solicitud_id' => $solicitud->id,
+                            'actividad_id' => $actividadData['actividad_id'],
+                            'fecha_asignacion' => now(),
+                            'estado_asignacion' => 'pendiente',
+                            'observaciones' => $actividadData['observaciones'] ?? null
+                        ]);
+                    }
                 }
 
                 // Si es una solicitud de adquisición, buscar equipo compatible
-                $tipoSolicitud = TipoSolicitud::find($request->tipo_solicitud_id);
                 if ($tipoSolicitud && stripos($tipoSolicitud->nombre, 'adquisición') !== false) {
                     $this->asignarEquipoCompatible($solicitud);
                 }
@@ -73,16 +104,21 @@ class SolicitudController extends Controller
             
             return redirect()->route('solicitudes.index')
                 ->with('success', 'Solicitud creada exitosamente.');
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Error al crear la solicitud: ' . $e->getMessage())
-                ->withInput();
-        }
+        // } catch (\Exception $e) {
+        //     return redirect()->back()
+        //         ->with('error', 'Error al crear la solicitud: ' . $e->getMessage())
+        //         ->withInput();
+        // }
     }
 
     public function show(Solicitud $solicitud)
     {
-        $solicitud->load(['empleado', 'actividades', 'tipoSolicitud']);
+        $solicitud->load([
+            'empleado', 
+            'solicitudActividades.actividad', 
+            'tipoSolicitud', 
+            'solicitudEquipos.equipo'
+        ]);
         return view('solicitudes.show', compact('solicitud'));
     }
 
@@ -91,26 +127,82 @@ class SolicitudController extends Controller
         $empleados = Empleado::all();
         $actividades = Actividad::all();
         $tipoSolicitudes = TipoSolicitud::all();
-        $solicitud->load('actividades');
-        return view('solicitudes.edit', compact('solicitud', 'empleados', 'actividades', 'tipoSolicitudes'));
+        $solicitud->load(['solicitudActividades', 'solicitudEquipos']);
+        
+        // Obtener equipos del empleado SOLO si es reparación
+        $equiposEmpleado = collect();
+        if ($solicitud->esReparacion() && $solicitud->empleado_id) {
+            $equiposEmpleado = $solicitud->empleado->equipos()
+                ->where('estado', 'Activo')
+                ->get();
+        }
+        
+        return view('solicitudes.edit', compact('solicitud', 'empleados', 'actividades', 'tipoSolicitudes', 'equiposEmpleado'));
     }
 
     public function update(Request $request, Solicitud $solicitud)
     {
         try {
             DB::transaction(function () use ($request, $solicitud) {
+                // Validar equipo SOLO para reparación
+                $tipoSolicitud = TipoSolicitud::find($request->tipo_solicitud_id);
+                $esReparacion = $tipoSolicitud && stripos($tipoSolicitud->nombre, 'reparación') !== false;
+                
+                // Solo validar equipo para reparación
+                if ($esReparacion && !$request->equipo_id) {
+                    throw new \Exception('Para solicitudes de reparación debe seleccionar un equipo.');
+                }
+
                 // Actualizar la solicitud
                 $solicitud->update([
                     'empleado_id' => $request->empleado_id,
                     'tipo_solicitud_id' => $request->tipo_solicitud_id
                 ]);
-                
-                // Sincronizar actividades
-                if ($request->has('actividades')) {
-                    $actividadIds = collect($request->actividades)->pluck('actividad_id')->toArray();
-                    $solicitud->actividades()->sync($actividadIds);
+
+                // Manejar SolicitudEquipo SOLO para reparaciones
+                if ($esReparacion && $request->equipo_id) {
+                    $solicitudEquipo = $solicitud->solicitudEquipos()->first();
+                    
+                    if ($solicitudEquipo) {
+                        // Actualizar existente
+                        $solicitudEquipo->update([
+                            'equipo_id' => $request->equipo_id,
+                            'descripcion_uso' => $request->descripcion_uso ?? $solicitudEquipo->descripcion_uso,
+                            'observaciones' => $request->observaciones ?? $solicitudEquipo->observaciones
+                        ]);
+                    } else {
+                        // Crear nuevo
+                        SolicitudEquipo::create([
+                            'solicitud_id' => $solicitud->id,
+                            'equipo_id' => $request->equipo_id,
+                            'descripcion_uso' => $request->descripcion_uso ?? 'Reparación solicitada',
+                            'fecha_asignacion' => now(),
+                            'estado_asignacion' => 'pendiente',
+                            'observaciones' => $request->observaciones ?? 'Solicitud de reparación actualizada'
+                        ]);
+                    }
                 } else {
-                    $solicitud->actividades()->detach();
+                    // Si ya no es reparación, eliminar SolicitudEquipo
+                    $solicitud->solicitudEquipos()->delete();
+                }
+
+                // Manejar SolicitudActividad (para ambos tipos de solicitud)
+                $solicitud->solicitudActividades()->delete();
+                if ($request->has('actividades')) {
+                    foreach ($request->actividades as $actividadData) {
+                        SolicitudActividad::create([
+                            'solicitud_id' => $solicitud->id,
+                            'actividad_id' => $actividadData['actividad_id'],
+                            'fecha_asignacion' => now(),
+                            'estado_asignacion' => 'pendiente',
+                            'observaciones' => $actividadData['observaciones'] ?? null
+                        ]);
+                    }
+                }
+
+                // Si cambió a adquisición, buscar equipo compatible
+                if ($tipoSolicitud && stripos($tipoSolicitud->nombre, 'adquisición') !== false) {
+                    $this->asignarEquipoCompatible($solicitud);
                 }
             });
             
@@ -126,7 +218,13 @@ class SolicitudController extends Controller
     public function destroy(Solicitud $solicitud)
     {
         try {
-            $solicitud->delete();
+            DB::transaction(function () use ($solicitud) {
+                // Eliminar relaciones
+                $solicitud->solicitudActividades()->delete();
+                $solicitud->solicitudEquipos()->delete();
+                $solicitud->delete();
+            });
+            
             return redirect()->route('solicitudes.index')
                 ->with('success', 'Solicitud eliminada exitosamente.');
         } catch (\Exception $e) {
@@ -136,12 +234,57 @@ class SolicitudController extends Controller
     }
 
     /**
+     * Obtener equipos activos de un empleado (SOLO para reparación)
+     */
+    public function getEquiposActivos($empleadoId)
+    {
+        try {
+            \Log::info("Buscando equipos para empleado: {$empleadoId}");
+            
+            $empleado = Empleado::find($empleadoId);
+            
+            if (!$empleado) {
+                return response()->json([], 404);
+            }
+            
+            // Cargar equipos con la relación tipoEquipo
+            $equipos = $empleado->equipos()
+                ->with('tipoEquipo')
+                ->where('equipos.estado', 'Activo')
+                ->select(
+                    'equipos.id', 
+                    'equipos.numero_serie', 
+                    'equipos.modelo', 
+                    'equipos.descripcion',
+                    'equipos.tipo_equipo_id'
+                )
+                ->get()
+                ->map(function ($equipo) {
+                    return [
+                        'id' => $equipo->id,
+                        'numero_serie' => $equipo->numero_serie,
+                        'modelo' => $equipo->modelo,
+                        'descripcion' => $equipo->descripcion,
+                        'tipo_equipo' => $equipo->tipoEquipo->nombre ?? 'N/A'
+                    ];
+                });
+            
+            \Log::info("Equipos encontrados: " . $equipos->count());
+            
+            return response()->json($equipos);
+        } catch (\Exception $e) {
+            \Log::error('Error al cargar equipos del empleado: ' . $e->getMessage());
+            return response()->json([], 500);
+        }
+    }
+
+    /**
      * Asigna un equipo compatible basado en los componentes requeridos por las actividades
      */
     private function asignarEquipoCompatible(Solicitud $solicitud)
     {
         // Obtener todas las actividades de la solicitud con sus programas y requisitos
-        $actividades = $solicitud->actividades()->with(['programas.requisitos'])->get();
+        $actividades = $solicitud->solicitudActividades()->with(['actividad.programas.requisitos'])->get();
         
         if ($actividades->isEmpty()) {
             return;
@@ -150,8 +293,8 @@ class SolicitudController extends Controller
         // Obtener todos los componentes requeridos por los programas de las actividades
         $componentesRequeridos = collect();
         
-        foreach ($actividades as $actividad) {
-            foreach ($actividad->programas as $programa) {
+        foreach ($actividades as $solicitudActividad) {
+            foreach ($solicitudActividad->actividad->programas as $programa) {
                 if ($programa->requisitos) {
                     $componentesRequeridos = $componentesRequeridos->merge($programa->requisitos);
                 }
@@ -194,12 +337,17 @@ class SolicitudController extends Controller
             $this->asignarEquipoAEmpleado($mejorEquipo, $solicitud->empleado_id, $solicitud->id);
             
             // Actualizar el estado del equipo
-            $mejorEquipo->update(['estado' => 'Activo']);
+            $mejorEquipo->update(['estado', 'Activo']);
             
-            // Registrar en la solicitud el equipo asignado (si tienes este campo)
-            if (Schema::hasColumn('solicitudes', 'equipo_asignado_id')) {
-                $solicitud->update(['equipo_asignado_id' => $mejorEquipo->id]);
-            }
+            // // Registrar en SolicitudEquipo
+            // SolicitudEquipo::create([
+            //     'solicitud_id' => $solicitud->id,
+            //     'equipo_id' => $mejorEquipo->id,
+            //     'descripcion_uso' => 'Equipo asignado automáticamente por solicitud de adquisición',
+            //     'fecha_asignacion' => now(),
+            //     'estado_asignacion' => 'completado',
+            //     'observaciones' => 'Equipo compatible encontrado automáticamente'
+            // ]);
         }
     }
 
@@ -237,8 +385,6 @@ class SolicitudController extends Controller
     private function cumpleRequisitos(Componente $componente, $requisito)
     {
         // Verificar compatibilidad básica
-        // Puedes mejorar esta lógica según tus necesidades específicas
-        
         $compatibilidad = false;
         
         // Verificar fabricante
@@ -266,13 +412,26 @@ class SolicitudController extends Controller
      */
     private function asignarEquipoAEmpleado(Equipo $equipo, $empleadoId, $solicitudId)
     {
-        // Usar el modelo EmpleadoEquipo para crear la asignación
-        EmpleadoEquipo::create([
-            'empleado_id' => $empleadoId,
-            'equipo_id' => $equipo->id,
-            'fecha_asignacion' => now(),
-            'observaciones' => "Asignado automáticamente por solicitud de adquisición #{$solicitudId}"
-        ]);
+        // Verificar si ya existe una asignación activa
+        $asignacionExistente = EmpleadoEquipo::where('empleado_id', $empleadoId)
+            ->where('equipo_id', $equipo->id)
+            ->first();
+            
+        if ($asignacionExistente) {
+            // Actualizar asignación existente
+            $asignacionExistente->update([
+                'fecha_asignacion' => now(),
+                'observaciones' => "Reasignado por solicitud de adquisición #{$solicitudId}"
+            ]);
+        } else {
+            // Crear nueva asignación
+            EmpleadoEquipo::create([
+                'empleado_id' => $empleadoId,
+                'equipo_id' => $equipo->id,
+                'fecha_asignacion' => now(),
+                'observaciones' => "Asignado automáticamente por solicitud de adquisición #{$solicitudId}"
+            ]);
+        }
     }
 
     /**
@@ -287,6 +446,29 @@ class SolicitudController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Error en la búsqueda: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Cambiar estado de una solicitud
+     */
+    public function cambiarEstado(Request $request, Solicitud $solicitud)
+    {
+        try {
+            $request->validate([
+                'estado' => 'required|in:pendiente,en_proceso,completada,cancelada'
+            ]);
+            
+            $solicitud->update([
+                'estado' => $request->estado,
+                'fecha_fin' => $request->estado === 'completada' ? now()->format('Y-m-d') : null
+            ]);
+            
+            return redirect()->back()
+                ->with('success', 'Estado de la solicitud actualizado exitosamente.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error al actualizar el estado: ' . $e->getMessage());
         }
     }
 }

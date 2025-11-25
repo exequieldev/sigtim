@@ -4,20 +4,22 @@ namespace App\Http\Controllers;
 
 use App\Models\Empleado;
 use App\Models\Oficina;
+use App\Models\Cargo;
 use Illuminate\Http\Request;
 
 class EmpleadoController extends Controller
 {
     public function index()
     {
-        $empleados = Empleado::with('oficina')->orderBy('nombre')->paginate(10);
+        $empleados = Empleado::with(['oficina', 'cargo'])->orderBy('nombre')->paginate(10);
         return view('empleados.index', compact('empleados'));
     }
 
     public function create()
     {
         $oficinas = Oficina::all();
-        return view('empleados.create', compact('oficinas'));
+        $cargos = Cargo::all();
+        return view('empleados.create', compact('oficinas', 'cargos'));
     }
 
     public function store(Request $request)
@@ -32,13 +34,16 @@ class EmpleadoController extends Controller
 
     public function show(Empleado $empleado)
     {
+        $empleado->load(['oficina', 'cargo']);
         return view('empleados.show', compact('empleado'));
     }
 
     public function edit(Empleado $empleado)
     {
         $oficinas = Oficina::all();
-        return view('empleados.edit', compact('empleado', 'oficinas'));
+        $cargos = Cargo::all();
+        $empleado->load('cargo');
+        return view('empleados.edit', compact('empleado', 'oficinas', 'cargos'));
     }
 
     public function update(Request $request, Empleado $empleado)

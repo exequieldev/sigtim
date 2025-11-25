@@ -35,7 +35,7 @@
                             <div class="mb-3">
                                 <label for="tipo_solicitud_id" class="form-label">Tipo de Solicitud *</label>
                                 <select class="form-select @error('tipo_solicitud_id') is-invalid @enderror" 
-                                        id="tipo_solicitud_id" name="tipo_solicitud_id" required>
+                                        id="tipo_solicitud_id" name="tipo_solicitud_id" required onchange="toggleSections()">
                                     <option value="">Seleccionar tipo de solicitud</option>
                                     @foreach($tipoSolicitudes as $tipo)
                                         <option value="{{ $tipo->id }}" {{ old('tipo_solicitud_id') == $tipo->id ? 'selected' : '' }}>
@@ -50,8 +50,35 @@
                         </div>
                     </div>
 
+                    <!-- Sección de Equipo para Reparación -->
+                    <div class="row mt-4" id="equipo-section" style="display: none;">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header bg-warning">
+                                    <h6 class="card-title mb-0">Equipo a Reparar</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="equipo_id" class="form-label">Seleccionar Equipo *</label>
+                                        <select class="form-select @error('equipo_id') is-invalid @enderror" 
+                                                id="equipo_id" name="equipo_id">
+                                            <option value="">Seleccionar equipo</option>
+                                            <!-- Los equipos se cargarán dinámicamente -->
+                                        </select>
+                                        @error('equipo_id')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                        <div class="form-text">
+                                            Solo se muestran los equipos activos asignados al empleado seleccionado.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Sección de Actividades Asociadas -->
-                    <div class="row mt-4">
+                    <div class="row mt-4" id="actividades-section">
                         <div class="col-md-12">
                             <div class="card">
                                 <div class="card-header bg-light">
@@ -132,13 +159,125 @@
 <script>
 let contadorActividades = {{ old('actividades') ? count(old('actividades')) : 0 }};
 const actividadesAgregadas = new Set();
+let tipoSolicitudesData = @json($tipoSolicitudes);
 
-// Inicializar el contador
+// Inicializar el contador y verificar tipo de solicitud inicial
 document.addEventListener('DOMContentLoaded', function() {
     actualizarContador();
     mostrarMensajeVacio();
+    toggleSections(); // Verificar al cargar la página
+    
+    // Cargar equipos si ya hay un empleado seleccionado (en caso de error de validación)
+    const empleadoId = document.getElementById('empleado_id').value;
+    if (empleadoId) {
+        cargarEquiposDelEmpleado(empleadoId);
+    }
 });
 
+// Función para mostrar/ocultar secciones según el tipo de solicitud
+function toggleSections() {
+    const tipoSolicitudSelect = document.getElementById('tipo_solicitud_id');
+    const equipoSection = document.getElementById('equipo-section');
+    const actividadesSection = document.getElementById('actividades-section');
+    const equipoSelect = document.getElementById('equipo_id');
+    
+    if (tipoSolicitudSelect.value) {
+        const tipoSeleccionado = tipoSolicitudesData.find(tipo => tipo.id == tipoSolicitudSelect.value);
+        
+        if (tipoSeleccionado && tipoSeleccionado.nombre.toLowerCase().includes('reparación')) {
+            // Mostrar equipo y ocultar actividades
+            equipoSection.style.display = 'block';
+            actividadesSection.style.display = 'none';
+            equipoSelect.required = true;
+            
+            // Cargar equipos del empleado seleccionado
+            const empleadoId = document.getElementById('empleado_id').value;
+            if (empleadoId) {
+                cargarEquiposDelEmpleado(empleadoId);
+            }
+        } else {
+            // Mostrar actividades y ocultar equipo
+            equipoSection.style.display = 'none';
+            actividadesSection.style.display = 'block';
+            equipoSelect.required = false;
+            equipoSelect.selectedIndex = 0;
+        }
+    } else {
+        // Por defecto mostrar actividades
+        equipoSection.style.display = 'none';
+        actividadesSection.style.display = 'block';
+        equipoSelect.required = false;
+    }
+}
+
+// Función para cargar equipos del empleado
+// Función para cargar equipos del empleado - CORREGIDA
+// Función para cargar equipos del empleado - ACTUALIZADA CON TIPO
+function cargarEquiposDelEmpleado(empleadoId) {
+    const equipoSelect = document.getElementById('equipo_id');
+    
+    // Mostrar loading
+    equipoSelect.innerHTML = '<option value="">Cargando equipos...</option>';
+    equipoSelect.disabled = true;
+    
+    fetch(`/empleados/${empleadoId}/equipos-activos`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al cargar equipos');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Equipos recibidos:', data); // Para ver en consola
+            
+            equipoSelect.innerHTML = '<option value="">Seleccionar equipo</option>';
+            
+            if (data && data.length > 0) {
+                data.forEach(equipo => {
+                    const option = document.createElement('option');
+                    option.value = equipo.id;
+                    
+                    // INCLUIR EL TIPO DE EQUIPO
+                    let texto = '';
+                    if (equipo.tipo_equipo) texto += `[${equipo.tipo_equipo}] `;
+                    // texto += equipo.numero_serie || 'Sin número de serie';
+                    if (equipo.modelo) texto += ` - ${equipo.modelo}`;
+                    // if (equipo.descripcion) texto += ` (${equipo.descripcion})`;
+                    
+                    option.textContent = texto;
+                    equipoSelect.appendChild(option);
+                });
+                
+                // Seleccionar valor anterior si existe
+                const oldEquipoId = "{{ old('equipo_id') }}";
+                if (oldEquipoId) {
+                    equipoSelect.value = oldEquipoId;
+                }
+                
+                equipoSelect.disabled = false;
+            } else {
+                equipoSelect.innerHTML = '<option value="">No hay equipos asignados</option>';
+                mostrarAlerta('El empleado seleccionado no tiene equipos asignados activos.', 'warning');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            equipoSelect.innerHTML = '<option value="">Error al cargar equipos</option>';
+            mostrarAlerta('Error al cargar los equipos del empleado.', 'danger');
+        });
+}
+
+// Event listener para cambio de empleado
+document.getElementById('empleado_id').addEventListener('change', function() {
+    const equipoSection = document.getElementById('equipo-section');
+    
+    // Solo cargar equipos si la sección de equipo está visible
+    if (equipoSection.style.display === 'block' && this.value) {
+        cargarEquiposDelEmpleado(this.value);
+    }
+});
+
+// Funciones para actividades
 function agregarActividadDesdeSelect() {
     const select = document.getElementById('actividadSelect');
     const actividadId = select.value;
@@ -148,7 +287,6 @@ function agregarActividadDesdeSelect() {
         return;
     }
     
-    // Verificar si la actividad ya fue agregada
     if (actividadesAgregadas.has(actividadId)) {
         mostrarAlerta('Esta actividad ya ha sido agregada', 'warning');
         return;
@@ -157,7 +295,6 @@ function agregarActividadDesdeSelect() {
     const option = select.options[select.selectedIndex];
     const nombre = option.getAttribute('data-nombre');
     
-    // Crear elemento de la actividad seleccionada
     const container = document.getElementById('actividades-container');
     const actividadDiv = document.createElement('div');
     actividadDiv.className = 'actividad-seleccionada border rounded p-3 mb-2';
@@ -177,10 +314,7 @@ function agregarActividadDesdeSelect() {
     actividadesAgregadas.add(actividadId);
     contadorActividades++;
     
-    // Resetear select
     select.selectedIndex = 0;
-    
-    // Actualizar interfaz
     actualizarContador();
     mostrarMensajeVacio();
     mostrarAlerta('Actividad agregada correctamente', 'success');
@@ -194,7 +328,6 @@ function eliminarActividad(boton) {
     actividadesAgregadas.delete(actividadId);
     contadorActividades--;
     
-    // Actualizar interfaz
     actualizarContador();
     mostrarMensajeVacio();
     reorganizarIndices();
@@ -226,7 +359,6 @@ function mostrarMensajeVacio() {
 }
 
 function mostrarAlerta(mensaje, tipo) {
-    // Crear alerta temporal
     const alerta = document.createElement('div');
     alerta.className = `alert alert-${tipo} alert-dismissible fade show`;
     alerta.innerHTML = `
@@ -234,21 +366,35 @@ function mostrarAlerta(mensaje, tipo) {
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
     
-    // Insertar después del título de actividades
     const cardHeader = document.querySelector('.card-header.bg-light');
     cardHeader.parentNode.insertBefore(alerta, cardHeader.nextSibling);
     
-    // Auto-eliminar después de 3 segundos
     setTimeout(() => {
         if (alerta.parentNode) {
             alerta.remove();
         }
-    }, 3000);
+    }, 5000);
 }
 
 // Validación del formulario
 document.getElementById('solicitudForm').addEventListener('submit', function(e) {
-    if (contadorActividades === 0) {
+    const tipoSolicitudSelect = document.getElementById('tipo_solicitud_id');
+    const tipoSeleccionado = tipoSolicitudesData.find(tipo => tipo.id == tipoSolicitudSelect.value);
+    const equipoSelect = document.getElementById('equipo_id');
+    const actividadesSection = document.getElementById('actividades-section');
+    
+    // Validar equipo para reparación
+    if (tipoSeleccionado && tipoSeleccionado.nombre.toLowerCase().includes('reparación')) {
+        if (!equipoSelect.value) {
+            e.preventDefault();
+            mostrarAlerta('Para solicitudes de reparación debe seleccionar un equipo.', 'danger');
+            equipoSelect.focus();
+            return false;
+        }
+    }
+    
+    // Validar actividades solo si la sección de actividades está visible
+    if (actividadesSection.style.display !== 'none' && contadorActividades === 0) {
         e.preventDefault();
         mostrarAlerta('Debe agregar al menos una actividad', 'danger');
         return false;
@@ -271,9 +417,12 @@ document.getElementById('solicitudForm').addEventListener('submit', function(e) 
     }
     
     .card-header {
-        background-color: #f8f9fa;
         border-bottom: 1px solid #dee2e6;
         padding: 1rem 1.25rem;
+    }
+    
+    .card-header.bg-warning {
+        background-color: #fff3cd !important;
     }
     
     .actividad-seleccionada {

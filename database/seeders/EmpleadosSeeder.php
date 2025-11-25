@@ -16,7 +16,7 @@ class EmpleadosSeeder extends Seeder
                 'apellido' => 'García',
                 'email' => 'ana.garcia@empresa.com',
                 'telefono' => '+1234567890',
-                'cargo' => 'Desarrolladora Senior',
+                'cargo_id' => 4, // Desarrollador Backend
                 'oficina_id' => 2
             ],
             [
@@ -24,7 +24,7 @@ class EmpleadosSeeder extends Seeder
                 'apellido' => 'Rodríguez',
                 'email' => 'carlos.rodriguez@empresa.com',
                 'telefono' => '+1234567891',
-                'cargo' => 'Administrador de Sistemas',
+                'cargo_id' => 6, // Administrador de Sistemas
                 'oficina_id' => 1
             ],
             [
@@ -32,7 +32,7 @@ class EmpleadosSeeder extends Seeder
                 'apellido' => 'López',
                 'email' => 'maria.lopez@empresa.com',
                 'telefono' => '+1234567892',
-                'cargo' => 'Reclutadora',
+                'cargo_id' => 2, // Jefe de Departamento
                 'oficina_id' => 3
             ],
             [
@@ -40,7 +40,7 @@ class EmpleadosSeeder extends Seeder
                 'apellido' => 'Martínez',
                 'email' => 'juan.martinez@empresa.com',
                 'telefono' => '+1234567893',
-                'cargo' => 'Contador',
+                'cargo_id' => 3, // Analista Senior
                 'oficina_id' => 4
             ],
             [
@@ -48,7 +48,7 @@ class EmpleadosSeeder extends Seeder
                 'apellido' => 'Hernández',
                 'email' => 'laura.hernandez@empresa.com',
                 'telefono' => '+1234567894',
-                'cargo' => 'Ejecutiva de Ventas',
+                'cargo_id' => 1, // Gerente General
                 'oficina_id' => 5
             ]
         ];

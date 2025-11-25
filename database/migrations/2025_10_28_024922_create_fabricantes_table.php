@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('fabricantes', function (Blueprint $table) {
             $table->id();
             $table->string('nombre');
+            $table->foreignId('tipo_fabricante_id')->constrained('tipos_fabricante'); // Clave foránea
             $table->string('contacto')->nullable();
             $table->string('telefono')->nullable();
             $table->string('email')->nullable();

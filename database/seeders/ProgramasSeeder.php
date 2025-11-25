@@ -16,7 +16,7 @@ class ProgramasSeeder extends Seeder
                 'descripcion' => 'Editor de imágenes y gráficos rasterizados',
                 'version' => '2024',
                 'fabricante_id' => 1, // Adobe Inc.
-                'sistema_operativo' => 'Windows, macOS',
+                'sistema_operativo' => 'Windows',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -25,7 +25,7 @@ class ProgramasSeeder extends Seeder
                 'descripcion' => 'Editor de código fuente desarrollado por Microsoft',
                 'version' => '1.85',
                 'fabricante_id' => 2, // Microsoft
-                'sistema_operativo' => 'Windows, Linux, macOS',
+                'sistema_operativo' => 'Linux',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -34,7 +34,7 @@ class ProgramasSeeder extends Seeder
                 'descripcion' => 'Hoja de cálculo para análisis de datos',
                 'version' => '365',
                 'fabricante_id' => 2, // Microsoft
-                'sistema_operativo' => 'Windows, macOS',
+                'sistema_operativo' => 'Windows',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -43,7 +43,7 @@ class ProgramasSeeder extends Seeder
                 'descripcion' => 'Software de diseño CAD para dibujo 2D y 3D',
                 'version' => '2024',
                 'fabricante_id' => 3, // Autodesk
-                'sistema_operativo' => 'Windows, macOS',
+                'sistema_operativo' => 'Windows',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -52,7 +52,7 @@ class ProgramasSeeder extends Seeder
                 'descripcion' => 'Herramienta de visualización de datos y business intelligence',
                 'version' => '2023.3',
                 'fabricante_id' => 4, // Tableau
-                'sistema_operativo' => 'Windows, macOS',
+                'sistema_operativo' => 'Windows',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -61,7 +61,7 @@ class ProgramasSeeder extends Seeder
                 'descripcion' => 'Navegador web rápido y seguro',
                 'version' => '120',
                 'fabricante_id' => 5, // Google
-                'sistema_operativo' => 'Windows, Linux, macOS, Android, iOS',
+                'sistema_operativo' => 'Windows',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -79,7 +79,7 @@ class ProgramasSeeder extends Seeder
                 'descripcion' => 'Plataforma de colaboración y comunicación empresarial',
                 'version' => '4.32',
                 'fabricante_id' => 7, // Salesforce
-                'sistema_operativo' => 'Windows, Linux, macOS, Web, Mobile',
+                'sistema_operativo' => 'Windows',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -88,7 +88,7 @@ class ProgramasSeeder extends Seeder
                 'descripcion' => 'Plataforma de videoconferencias y reuniones virtuales',
                 'version' => '5.17',
                 'fabricante_id' => 8, // Zoom Video Communications
-                'sistema_operativo' => 'Windows, macOS, Linux, Web, Mobile',
+                'sistema_operativo' => 'Windows',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -97,7 +97,7 @@ class ProgramasSeeder extends Seeder
                 'descripcion' => 'Herramienta de gestión de proyectos y organización de tareas',
                 'version' => '2023',
                 'fabricante_id' => 9, // Atlassian
-                'sistema_operativo' => 'Web, Windows, macOS, Mobile',
+                'sistema_operativo' => 'Windows',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]

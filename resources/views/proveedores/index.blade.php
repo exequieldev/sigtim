@@ -1,4 +1,4 @@
-@extends('adminlte::page')
+@extends('layouts.app')
 
 @section('title', 'Lista de Proveedores')
 
@@ -6,9 +6,9 @@
 <div class="row mt-2">
     <div class="col-12">
         <div class="card">
-            <div class="card-header d-flex align-items-center">
+            <div class="card-header bg-primary text-white d-flex align-items-center justify-content-between">
                 <h5 class="card-title mr-4">Lista de Proveedores</h5>
-                <a href="{{ route('proveedores.create') }}" class="btn btn-primary">
+                <a href="{{ route('proveedores.create') }}" class="btn btn-light btn-sm">
                     <i class="fas fa-plus"></i> Nuevo Proveedor
                 </a>
             </div>
@@ -19,7 +19,7 @@
             
                 <div class="table-responsive">
                     <table class="table table-striped" id="proveedor-table">
-                        <thead class="table-dark">
+                        <thead class="table-success">
                             <tr>
                                 <th>Razón Social</th>
                                 <th>CUIT</th>
@@ -83,6 +83,12 @@
 @endsection
 
 @section('js')
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+<!-- DataTables JS -->
+<script type="text/javascript" src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+
 <script>
     $(document).ready(function() {
         $('#proveedor-table').DataTable({
@@ -90,7 +96,11 @@
                 "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json"
             },
             "pageLength": 5,
-            "lengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Todos"]]
+            "lengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Todos"]],
+            "responsive": true,
+            "ordering": true,
+            "searching": true,
+            "info": true
         });
     });
 </script>
